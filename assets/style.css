@@ -1,0 +1,9 @@
+body {
+    background-image: url(./images/fond);
+}
+
+h1 {
+    color : orange;
+    text-align:center;
+    text-decoration: underline;
+}

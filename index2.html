@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>pewPew</title>
+	<style>
+		#rules{
+			width:650px;
+			height:520px;
+			background-color: #2c3e50;
+			margin: 0 auto;
+			display:flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.menu_content{
+			display:flex;
+			flex-direction:column; 
+			justify-content:center;
+			align-items:center;
+			text-align:center;
+		}
+		.menu_content p{
+			width:70%;
+			margin:0 auto;
+			padding-top:25px;
+			color:#fff;
+			font-family: sans-serif;
+		}
+
+		#buttonStart {
+			padding: 25px;
+			background-color: lightgrey;
+			width:200px;
+			height:60px;
+			font-family:sans-serif;
+			font-size:24px;
+			font-weight:200;
+			display:flex;
+			justify-content: center;
+			align-items:center;
+		}
+		#buttonStart:hover{
+			cursor:pointer;
+			background-color: #fff;
+		}
+
+
+		#gameOver{
+			width:650px;
+			height:520px;
+			background-color: #2c3e50;
+			margin:0 auto;
+			font-family: sans-serif;
+			display:flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+
+		}
+		#gameOver > *{
+			color:#fff;
+		}
+
+		#scoreEnd{
+			font-size:65px;
+			text-align:center;
+			color:#fff;
+		}
+		
+		#playAgain span{
+			background-color: lightgrey;
+			width:200px;
+			height:60px;
+			padding:25px;
+			font-size:20px;
+			color:black;
+			
+		}
+
+		#playAgain span:hover{
+			cursor:pointer;
+			background-color: #fff;
+		}
+
+		canvas {
+			background: #2c3e50;
+		 	display: block; 
+			margin: 0 auto;
+		}
+		
+		#scoreBoard {
+			width:650px;
+			height:520px;
+			margin:0 auto;
+			font-family:sans-serif;
+		}
+
+		#scoreBoard ol li{
+			font-size:25px;
+			margin-top:4px;
+		}
+		#scoreBoard ol li:nth-child(odd){
+
+		background-color: lightgrey;
+
+		}
+	</style>
+</head>
+
+<body>
+	<div id="rules">
+		<div class="menu_content">
+			<div id="buttonStart" onclick="displayToggleStart()">
+				<h1>Play</h1>
+			</div>
+			<p>Controle la canon avec la souris et tire sur les carrés rouge avec la barre espace.</p>
+			<p>Control the canon with the mouse and shoot the red squares with the spacebar.</p>
+		</div>
+	</div>
+
+	<div id="gameOver">
+		<h1>GAME OVER</h1>
+		<p >your score is :</p>
+		<p id = "scoreEnd" ></p>  
+		<div id="playAgain" onclick='displayToggleEnd()'>
+			<span>Replay</span>
+		</div>
+	</div> 
+
+
+	<div id="canvasContainer">
+		<canvas id = "myCanvas" width="650" height="520">Your browser doesn't support Canvas.</canvas>
+	</div>
+		
+	<div id= scoreBoard>
+
+		<h2>Your high scores</h2>
+		<ol id ="listScore">
+		</ol>
+	</div>
+
+	<script>
+
+
+		/////////////////////////
+		/////instancing canvas///
+		/////////////////////////
+
+		// var check = false;
+		
+
+
+
+
+		
+		var canvas = document.getElementById("myCanvas");
+		var ctx = canvas.getContext("2d");
+		var score = 0;
+
+		// projectile
+
+		var x = launchX ;
+		var y = canvas.height -30 ;
+		var dx = 0;
+		var dy = -25; 
+		var ballRadius = 20;
+
+		// launcher
+
+		var launchHeight = 30;
+		var launchWidth = 65;
+		var launchX = (canvas.width - launchWidth)/2;
+
+		var pressed = false; 
+		var trajectX = [];
+
+		// // targets
+		var tarY = Math.floor(Math.random() * 138);
+		var tarX = Math.floor(Math.random() * 555);
+		var tarWidth = 70;
+		var tarHeight = 70;
+
+		// loader
+
+		var load = -canvas.height;
+		console.log(load);
+
+		//dom
+		var startButton = document.getElementById("buttonStart");
+		var toggleCanvas = document.getElementById("canvasContainer");
+		var targetButtonStart = document.getElementById("rules");
+		var toggleGameOver = document.getElementById("gameOver");
+		var selectListScore = document.getElementById("listScore");
+
+		toggleCanvas.style.display = "none";
+		toggleGameOver.style.display ="none";
+
+		// Highscore
+
+		
+
+		function displayToggleStart() {
+			
+			if (toggleCanvas.style.display === "none") {
+				toggleCanvas.style.display = "";
+				targetButtonStart.style.display = "none";
+				draw();
+
+				} 
+		} 
+
+		function displayToggleEnd(){
+			if(toggleGameOver.style.display === ""){
+				toggleGameOver.style.display = "none";
+
+				toggleCanvas.style.display = "";
+				scoreEnd.innerHTML ="";
+				resetBall();
+				draw();
+			}
+		}
+		
+
+		
+		///////////
+		// EVENTS//
+		///////////
+
+		document.addEventListener("mousemove", mouseMoveHandler, false);
+		document.addEventListener("keydown", keyDownHandler, false);
+
+		////////////
+
+ 
+		function mouseMoveHandler(e) {
+	    var relativeX = e.clientX - canvas.offsetLeft;
+		    if(relativeX > 0 && relativeX < canvas.width) {
+		        launchX = relativeX - launchWidth/2;
+		    }
+		};
+
+
+		function keyDownHandler(e){
+
+			if (e.keyCode == 32){
+				e.preventDefault();
+				pressed = true;
+			}
+		};
+
+
+
+		
+			/////////////
+			// drawings//
+			/////////////
+
+
+
+		function drawBall(){
+			ctx.beginPath();
+			ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+			ctx.fillStyle = "#0095DD";
+			ctx.fill();
+			ctx.closePath();
+
+		};
+		function drawLoader(){
+			ctx.beginPath();
+			ctx.rect(0, load, canvas.width, canvas.height);
+			ctx.fillStyle ="lightgrey";
+			ctx.fill();
+			ctx.closePath();
+		};
+
+		function drawLauncher(){
+			ctx.beginPath();
+			ctx.rect(launchX,canvas.height - launchHeight, launchWidth, launchHeight );
+			ctx.fillStyle = "#2980b9";
+			ctx.fill();
+			ctx.closePath();
+		};
+
+		function drawTarget(){
+
+			ctx.beginPath();
+			ctx.rect(tarX,tarY,tarWidth,tarHeight);
+			ctx.fillStyle = "#e74c3c";
+			ctx.fill();
+			ctx.closePath();
+
+		};
+
+		/// COLLISION DETECTION
+
+		function collisionDetection(){
+
+			if(tarX < x + ballRadius && tarX + tarWidth > x - ballRadius && tarY + tarHeight > y -ballRadius){
+				tarY = Math.floor(Math.random() * 138);
+				tarX = Math.floor(Math.random() * 555);
+				drawTarget();
+				score += 1;
+				load -= 20;
+				resetBall();
+			}
+		};
+
+		// Reset ball a la position du canon
+		function resetBall(){
+			pressed = false;
+				y = (canvas.height - launchHeight) ;
+				x = launchX +(launchWidth) / 2;
+		}
+		// FIN DU JEU
+
+		var scoreArray = [];
+
+		var scoreToArray = 0 ;
+
+		//check si le score est deja dans la list 
+
+		function inArray(){
+
+			var count=scoreArray.length;
+
+			for(var i=0;i<count;i++){
+
+				if(scoreArray[i]===scoreToArray){
+					return false;
+					}
+				}
+			return true;
+		};
+
+		// Creation d'un array ou le score est pushé et trié par ordre décroissant, 
+
+		function createScoreArray(){
+
+			scoreToArray = score;
+
+			if(inArray()){
+				scoreArray.push(scoreToArray);
+				scoreArray.sort(function(a,b){return -a + b;});
+				scoreToArray = 0 ;
+				console.log(scoreArray);
+			};
+
+			console.log(scoreArray);
+					
+		};
+
+		function addScoreToHighScore(){
+			selectListScore.innerHTML = ""; // clean le tableau des scores avant de les mettre a jour
+			scoreArray.forEach(function(scoreElement){
+				var LI = document.createElement("li"); 
+				LI.innerHTML = scoreElement;
+				selectListScore.appendChild(LI);
+			});
+			
+		 };
+
+		function endGame(){
+			load += 1;
+			console.log(load);
+			if(load === 1){
+
+				resetBall(); // empeche la balle de continuer sa course que la partie ait recommencée
+				cancelAnimationFrame(request); // pause requestAnimationFrame
+				scoreEnd.insertAdjacentHTML('beforeend',score); //Display score de la partie qui vient de se finir
+
+				createScoreArray();
+				
+				addScoreToHighScore();
+				// var LI = document.createElement("li"); 
+				// LI.innerHTML = newscore;
+		 	// 	selectListScore.appendChild(LI);
+
+				score= 0;
+				load = -canvas.height;
+				toggleCanvas.style.display = "none";
+				toggleGameOver.style.display ="";
+				
+
+			}
+		};
+
+		function drawScore() {
+
+		    ctx.font = "19px Arial";
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fillText("Score: "+score, 13, 30);
+		};
+
+		function draw(){
+			request = requestAnimationFrame(draw);
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+
+			drawLoader();
+			drawBall();
+			drawLauncher();
+			drawTarget();
+			drawScore();
+			collisionDetection()
+			endGame();
+
+
+			if(pressed){
+				trajectX[0] = launchX;
+				//x += dx;
+				y += dy;
+			}else if(!pressed){
+
+				x = launchX +(launchWidth) / 2;
+			}
+
+			if (y < 0) {
+
+				resetBall()
+			};
+			
+
+			// collision detection
+
+
+
+			
+
+		};
+
+			/////////////////
+			// end drawings//
+			/////////////////
+		
+		/////////
+		// DOM //
+		/////////
+		
+		
+
+		
+
+
+	</script>
+</body>
+</html>
