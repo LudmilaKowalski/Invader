@@ -12,7 +12,7 @@ I used html, css for the design and Javascript to run the game.
 
 This is an example of a game : 
 
-![Image](./assets/images/invaders.png)
+![Image](./assets/images/invader.png)
 
 ## Link
 
